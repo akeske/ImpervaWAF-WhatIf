@@ -12,13 +12,13 @@ export interface SecurityRule {
 export class RuleSet {
   name?: string;
   rule?: string;
-  token: Token[] = [];
+  ruleExpressions: RuleExpression[] = [];
   boolExpression?: string;
   result: boolean = false;
 }
 
-export interface Token {
-  token?: string;
+export interface RuleExpression {
+  ruleExpression?: string;
   result?: boolean;
 }
 

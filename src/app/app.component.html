@@ -124,12 +124,12 @@
           <div ngbAccordionCollapse>
             <div ngbAccordionBody>
               <ng-template>
-                <ul *ngFor="let token of rule.token">
+                <ul *ngFor="let token of rule.ruleExpressions">
                   <li>
                     <p
                       class="overflow-auto"
                       [ngClass]="token.result ? 'text-success' : 'text-danger'">
-                      {{ token.token }}
+                      {{ token.ruleExpression }}
                     </p>
                   </li>
                 </ul>

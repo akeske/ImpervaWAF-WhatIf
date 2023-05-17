@@ -6,7 +6,7 @@ import {
   ClientTypeEnum,
   VariableEnums,
   RuleSet,
-  Token,
+  RuleExpression,
 } from './model';
 import { parseScript } from 'esprima';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
@@ -104,20 +104,28 @@ export class AppComponent {
   protected parseRules(): void {
     const separators = ['&', '\\|', '\\(', '\\)'];
     let res = '';
+    // get the rules
     this.ruleStrings.forEach(ruleString => {
+      // create a new RuleSet object to store the rule string, results and expressions
       let ruleSet: RuleSet = new RuleSet();
+
+      // set the rule from ruleString 
       ruleSet.rule = ruleString.replace(/;/g, ' ; ');
-      const ruleExpression = ruleString.split(
+      
+      // split the rulestring depends on '&,|,(,)' chars
+      let ruleExpression = ruleString.split(
         new RegExp(separators.join('|'), 'g')
       );
+
+      // get one-by-one the rule expressions 'type == value'
       let operator = '';
       let parenthesis = '';
       ruleExpression.forEach(rule => {
         rule = rule.trim();
-        // console.error(rule);
-        const ruleTokens = rule.split(new RegExp(' ', 'g'));
         let type = '';
         let vars: string[] = [];
+        // console.error(rule);
+        let ruleTokens = rule.split(new RegExp(' ', 'g'));
         ruleTokens.forEach(ruleToken => {
           // console.error(ruleToken);
           let isVariable = false;
@@ -148,7 +156,8 @@ export class AppComponent {
           }
         });
 
-        const orOperator: any[] = [];
+        // for array of values, for example 'type == val1;val2;val3'
+        let orOperator: any[] = [];
         Object.keys(this.fakeUser).forEach(key => {
           if (type === key) {
             vars.forEach(vari => {
@@ -168,28 +177,30 @@ export class AppComponent {
                   case 'contains':
                     // @ts-expect-error
                     bool = vari.includes(this.fakeUser[key]);
-                    // console.error('  1'+a);
                     break;
                   case 'not-contains':
                     // @ts-expect-error
                     bool = !vari.includes(this.fakeUser[key]);
-                    // console.error('  2'+a);
                     break;
                   default:
                     bool = false;
                     break;
                 }
-                let token: Token = {
-                  token: type + ' ' + operator + ' ' + vari,
+                // the ruleExpression and its result (true or false)
+                let ruleExpression: RuleExpression = {
+                  ruleExpression: type + ' ' + operator + ' ' + vari,
                   result: bool,
                 };
-                ruleSet.token.push(token);
+                ruleSet.ruleExpressions.push(ruleExpression);
                 orOperator.push(bool);
               }
             });
           }
         });
+        // if we have array of values then traspile it to or independent expressions
         operator = orOperator.join(' | ');
+
+        // add parenthesis as the ruleString said
         if (parenthesis === '(') {
           ruleString += ' ( ';
         } else if (parenthesis === ')') {
@@ -202,12 +213,11 @@ export class AppComponent {
 
       let ast = parseScript(res);
       let result = this.evaluate(ast.body[0]);
-      // console.error(result);
+      //  the result of rule stored on ruleSet, ready to present it on html
       ruleSet.result = result;
-      // console.error('---------------');
+      // add to array of rules
       this.ruless.push(ruleSet);
     });
-    // console.error(this.ruless);
   }
 
   ipReputationRiskLevels: IPReputationRiskLevelEnum[] = [
