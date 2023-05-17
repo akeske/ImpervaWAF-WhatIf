@@ -1,11 +1,11 @@
-# Imperva What If
-
-The fucntion 'evaluate' is based on ChatGPT with feedback 'how to boolean from Esprima' :P
+# Imperva Web Application Firewall (WAF) | Security Rules What If
 
 This project is created to simulate a user with specific characteristics and which security rule from Imperva WAF will be triggered.
 
-The idea is from Microsoft AAD Conditional Access What if nad powershell WhatIf function.
+The idea is from Microsoft AAD Conditional Access What if and powershell WhatIf function.
 
-## Development server
+The fucntion 'evaluate' is based on ChatGPT with feedback 'how to boolean from Esprima' :smirk:
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+## How to
+
+Run `ng serve`, navigate to `http://localhost:4200/` and play.
