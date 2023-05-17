@@ -8,4 +8,4 @@ The fucntion 'evaluate' is based on ChatGPT with feedback 'how to boolean from E
 
 ## How to
 
-Run `ng serve`, navigate to `http://localhost:4200/` and play.
+Run `npm i`, `ng serve`, navigate to `http://localhost:4200/` and play.
