@@ -110,10 +110,7 @@
 
     <div class="col-8">
       <div ngbAccordion [closeOthers]="true">
-        <div
-          ngbAccordionItem
-          *ngFor="let rule of ruless"
-          [collapsed]="rule.name !== 'First'">
+        <div ngbAccordionItem *ngFor="let rule of rules">
           <button ngbAccordionButton>
             <div
               class="overflow-auto"
