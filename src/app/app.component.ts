@@ -18,9 +18,10 @@ import { FormGroup, FormControl, Validators } from '@angular/forms';
 })
 export class AppComponent {
   ruleStrings: string[] = [
-    'ClientType == HackingTool & ASN != 29241;8075;56910',
+    'ClientType == HackingTool & (ASN != 29241 & ASN != 8075 & ASN != 56910)',
+    'ClientType == HackingTool & (ASN != 29241;8075;56910)',
     'MaliciousIPList == TorIPs;AnonymousProxyIPs',
-    'ClientType == Unknown & ASN != 29241;8075;56910 & ClientIP != 83.212.175.132',
+    'ClientType == Unknown & (ASN != 29241 & ASN != 8075 & ASN != 56910) & ClientIP != 83.212.175.132',
     'IPReputationRiskLevel == High',
     'IPReputationRiskLevel == Medium & CountryCode != GR',
     'ClientType == DDoSBot;Worm;MaskingProxy;ClickBot;CommentSpamBot;SpamBot;VulnerabilityScanner & ClientId != 453',
@@ -30,23 +31,23 @@ export class AppComponent {
   ruless: RuleSet[] = [];
 
   fakeUserForm = new FormGroup({
-    ClientType: new FormControl('', Validators.required),
-    IPReputationRiskLevel: new FormControl(''),
-    ASN: new FormControl(''),
-    CountryCode: new FormControl('GR'),
-    ClientIP: new FormControl('62.169.201.60', [
+    ClientType: new FormControl(localStorage.getItem('ClientType'), Validators.required),
+    IPReputationRiskLevel: new FormControl(localStorage.getItem('IPReputationRiskLevel')),
+    ASN: new FormControl(localStorage.getItem('ASN')),
+    CountryCode: new FormControl(localStorage.getItem('CountryCode')),
+    ClientIP: new FormControl(localStorage.getItem('ClientIP'), [
       Validators.required,
       Validators.pattern(
         '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)'
       ),
     ]),
-    ClientId: new FormControl('', [
+    ClientId: new FormControl(localStorage.getItem('ClientId'), [
       Validators.required,
       Validators.min(1),
       Validators.max(985),
     ]),
-    URL: new FormControl(''),
-    MaliciousIPList: new FormControl(''),
+    URL: new FormControl(localStorage.getItem('URL')),
+    MaliciousIPList: new FormControl(localStorage.getItem('MaliciousIPList')),
   });
 
   constructor() {}
@@ -62,6 +63,14 @@ export class AppComponent {
       URL: form.value.URL,
       MaliciousIPList: form.value.MaliciousIPList,
     };
+    localStorage.setItem('ClientType', form.value.ClientType);
+    localStorage.setItem('IPReputationRiskLevel', form.value.IPReputationRiskLevel);
+    localStorage.setItem('ASN', form.value.ASN);
+    localStorage.setItem('CountryCode', form.value.CountryCode);
+    localStorage.setItem('ClientIP', form.value.ClientIP);
+    localStorage.setItem('ClientId', form.value.ClientId);
+    localStorage.setItem('URL', form.value.URL);
+    localStorage.setItem('MaliciousIPList', form.value.MaliciousIPList);
     this.ruless = [];
     this.parseRules();
   }
