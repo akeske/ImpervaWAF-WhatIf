@@ -22,6 +22,11 @@ export interface RuleExpression {
   result?: boolean;
 }
 
+export interface ClientId {
+  id: number;
+  name: string;
+}
+
 export const VariableEnums: string[] = [
   'MaliciousIPList',
   'ClientType',

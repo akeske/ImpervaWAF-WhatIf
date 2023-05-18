@@ -1,15 +1,13 @@
 import { Component } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { parseScript } from 'esprima';
+import { SecurityRule, VariableEnums, RuleSet, RuleExpression } from './model';
 import {
-  SecurityRule,
-  IPReputationRiskLevelEnum,
-  MaliciousIPListEnum,
-  ClientTypeEnum,
-  VariableEnums,
-  RuleSet,
-  RuleExpression,
-} from './model';
+  defaultClientIds,
+  defaultMaliciousIPList,
+  defaultIpReputationRiskLevels,
+  defaultClientTypes,
+} from './clientId.model';
 
 @Component({
   selector: 'app-root',
@@ -29,6 +27,10 @@ export class AppComponent {
     'ClientType == DDoSBot;Worm;MaskingProxy;ClickBot;CommentSpamBot;SpamBot;VulnerabilityScanner & ClientId != 453',
     '(URL not-contains "oauth";"saml") & (URL not-contains "/dashboard" | ( ClientIP != 62.103.236.223 & ClientIP != 20.50.146.69 & ClientIP != 20.73.36.250 & ClientIP != 62.169.201.60 & ClientIP != 62.103.236.223 & ClientIP != 62.169.197.77))',
   ];
+  clientIds = defaultClientIds;
+  maliciousIPList = defaultMaliciousIPList;
+  ipReputationRiskLevels = defaultIpReputationRiskLevels;
+  clientTypes = defaultClientTypes;
 
   fakeUser: SecurityRule = {};
   rules: RuleSet[] = [];
@@ -49,10 +51,8 @@ export class AppComponent {
         '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)'
       ),
     ]),
-    ClientId: new FormControl(localStorage.getItem('ClientId'), [
+    ClientId: new FormControl(Number(localStorage.getItem('ClientId')), [
       Validators.required,
-      Validators.min(1),
-      Validators.max(985),
     ]),
     URL: new FormControl(localStorage.getItem('URL')),
     MaliciousIPList: new FormControl(localStorage.getItem('MaliciousIPList')),
@@ -61,6 +61,8 @@ export class AppComponent {
   constructor() {}
 
   onSubmit(form: FormGroup) {
+    this.rules = [];
+
     this.fakeUser = {
       ClientType: form.value.ClientType,
       IPReputationRiskLevel: form.value.IPReputationRiskLevel,
@@ -79,11 +81,10 @@ export class AppComponent {
     localStorage.setItem('ASN', form.value.ASN);
     localStorage.setItem('CountryCode', form.value.CountryCode);
     localStorage.setItem('ClientIP', form.value.ClientIP);
+    // let selectedClientId: ClientId | undefined = this.clientIds.find(cId => cId.id == form.value.ClientId);
     localStorage.setItem('ClientId', form.value.ClientId);
     localStorage.setItem('URL', form.value.URL);
     localStorage.setItem('MaliciousIPList', form.value.MaliciousIPList);
-
-    this.rules = [];
 
     this.parseRules();
   }
@@ -154,14 +155,21 @@ export class AppComponent {
             vars.forEach(vari => {
               if (key === type) {
                 let bool: boolean;
+                // if the type is string then convert it to lower case ready for comparison
+                // @ts-expect-error
+                if (typeof this.fakeUser[key] === 'string') {
+                  // @ts-expect-error
+                  this.fakeUser[key] = this.fakeUser[key].toLowerCase();
+                  vari = vari.toLowerCase();
+                }
                 switch (operator) {
                   case '==':
                     // @ts-expect-error
-                    bool = this.fakeUser[key] == vari;
+                    bool = this.fakeUser[key] === vari.toLowerCase();
                     break;
                   case '!=':
                     // @ts-expect-error
-                    bool = this.fakeUser[key] != vari;
+                    bool = this.fakeUser[key] !== vari.toLowerCase();
                     break;
                   case 'contains':
                     // @ts-expect-error
@@ -240,27 +248,4 @@ export class AppComponent {
       throw new Error(`Unknown node type: ${node.type}`);
     }
   };
-
-  ipReputationRiskLevels: IPReputationRiskLevelEnum[] = [
-    IPReputationRiskLevelEnum.Low,
-    IPReputationRiskLevelEnum.Medium,
-    IPReputationRiskLevelEnum.High,
-  ];
-
-  clientTypes: ClientTypeEnum[] = [
-    ClientTypeEnum.DDoSBot,
-    ClientTypeEnum.Worm,
-    ClientTypeEnum.MaskingProxy,
-    ClientTypeEnum.ClickBot,
-    ClientTypeEnum.CommentSpamBot,
-    ClientTypeEnum.SpamBot,
-    ClientTypeEnum.VulnerabilityScanner,
-    ClientTypeEnum.HackingTool,
-    ClientTypeEnum.Unknown,
-  ];
-
-  MaliciousIPList: MaliciousIPListEnum[] = [
-    MaliciousIPListEnum.AnonymousProxyIPs,
-    MaliciousIPListEnum.TorIPs,
-  ];
 }
