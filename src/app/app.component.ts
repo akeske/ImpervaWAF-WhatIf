@@ -165,11 +165,11 @@ export class AppComponent {
                 switch (operator) {
                   case '==':
                     // @ts-expect-error
-                    bool = this.fakeUser[key] === vari.toLowerCase();
+                    bool = this.fakeUser[key] == vari.toLowerCase();
                     break;
                   case '!=':
                     // @ts-expect-error
-                    bool = this.fakeUser[key] !== vari.toLowerCase();
+                    bool = this.fakeUser[key] != vari.toLowerCase();
                     break;
                   case 'contains':
                     // @ts-expect-error
