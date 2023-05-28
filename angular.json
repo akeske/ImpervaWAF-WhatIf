@@ -17,6 +17,9 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
+            "allowedCommonJsDependencies": [
+               "esprima"
+            ],
             "outputPath": "dist/imperva-whatif",
             "index": "src/index.html",
             "main": "src/main.ts",
