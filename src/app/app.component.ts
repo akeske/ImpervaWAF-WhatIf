@@ -16,6 +16,9 @@ import {
 })
 export class AppComponent {
   ruleStrings: string[] = [
+    "URL not-contains \"files\";\"libs\";\"blobfile\";\"assets\" & URL not-contains \"dashboard\" | ClientIP != 62.103.236.223 & ClientIP != 20.50.146.69 & ClientIP != 20.73.36.250 & ClientIP != 62.169.201.60 & ClientIP != 34.252.90.203 & ClientIP != 62.103.236.223 & ClientIP != 62.169.197.77",
+    "(URL not-contains \"files\";\"libs\";\"blobfile\";\"assets\") & (URL not-contains \"dashboard\" | (ClientIP != 62.103.236.223;20.50.146.69;20.73.36.250;62.169.201.60;62.169.197.77))",
+    "URL contains \"dei-myenergy\" & ClientIP != 37.6.231.5 & ClientIP != 45.139.212.119",
     '(ASN == 123 & ASN != 123) | (ASN == 123 & (ASN != 123 | (ASN == 123 & ASN != 123)))',
     '(ASN == 123 & ASN != 123) | ((ASN == 123 & ASN != 123) | (ASN == 123 & ASN != 123))',
     'ClientType == HackingTool & (ASN != 29241 & ASN != 8075 & ASN != 56910)',
@@ -110,12 +113,13 @@ export class AppComponent {
       );
 
       // get one-by-one the rule expressions 'type == value'
-      let operator = '';
-      let parenthesis = '';
+      let predicate: string = '';
+      let equation: string = '';
+      let parenthesis: string = '';
       ruleExpressions.forEach(rule => {
         rule = rule.trim();
-        let type = '';
-        let vars: string[] = [];
+        let parameter: string = '';
+        let values: string[] = [];
         // console.error(rule);
         let ruleTokens = rule.split(new RegExp(' ', 'g'));
         ruleTokens.forEach(ruleToken => {
@@ -124,79 +128,86 @@ export class AppComponent {
           let isSpecialChar = false;
           VariableEnums.forEach(variableEnum => {
             if (ruleToken.toLowerCase() === variableEnum.toLowerCase()) {
-              type = ruleToken;
+              parameter = ruleToken;
               isVariable = true;
             }
           });
           if (ruleToken.trim() == '==' || ruleToken.trim() == '!=') {
             isSpecialChar = true;
-            operator = ruleToken.trim();
+            equation = ruleToken.trim();
           }
           if (
             ruleToken.trim() == 'contains' ||
             ruleToken.trim() == 'not-contains'
           ) {
             isSpecialChar = true;
-            operator = ruleToken.trim();
+            equation = ruleToken.trim();
           }
           if (ruleToken.trim() == '(' || ruleToken.trim() == ')') {
             isSpecialChar = true;
             parenthesis = ruleToken.trim();
           }
           if (!isVariable && !isSpecialChar) {
-            vars = ruleToken.split(new RegExp(';', 'g'));
+            values = ruleToken.split(new RegExp(';', 'g'));
           }
         });
 
+
         // for array of values, for example 'type == val1;val2;val3'
-        let orOperator: any[] = [];
+        let multiplePredicates: any[] = [];
+        let operator: string = '';
         Object.keys(this.fakeUser).forEach(key => {
-          if (type === key) {
-            vars.forEach(vari => {
-              if (key === type) {
+          if (parameter === key) {
+            values.forEach(value => {
+              if (key === parameter) {
                 let bool: boolean;
                 // if the type is string then convert it to lower case ready for comparison
                 // @ts-expect-error
                 if (typeof this.fakeUser[key] === 'string') {
                   // @ts-expect-error
                   this.fakeUser[key] = this.fakeUser[key].toLowerCase();
-                  vari = vari.toLowerCase();
+                  value = value.toLowerCase();
                 }
-                switch (operator) {
+                switch (equation) {
                   case '==':
                     // @ts-expect-error
-                    bool = this.fakeUser[key] == vari.toLowerCase();
+                    bool = this.fakeUser[key] == value.toLowerCase();
+                    operator = '|';
                     break;
                   case '!=':
                     // @ts-expect-error
-                    bool = this.fakeUser[key] != vari.toLowerCase();
+                    bool = this.fakeUser[key] != value.toLowerCase();
+                    operator = '&';
                     break;
                   case 'contains':
                     // @ts-expect-error
-                    bool = vari.includes(this.fakeUser[key]);
+                    bool = value.includes(this.fakeUser[key]);
+                    operator = '|';
                     break;
                   case 'not-contains':
                     // @ts-expect-error
-                    bool = !vari.includes(this.fakeUser[key]);
+                    bool = !value.includes(this.fakeUser[key]);
+                    operator = '&';
                     break;
                   default:
                     bool = false;
+                    operator = '&';
                     break;
                 }
                 // the ruleExpression and its result (true or false)
                 let ruleExpression: RuleExpression = {
-                  ruleExpression: type + ' ' + operator + ' ' + vari,
+                  ruleExpression: parameter + ' ' + equation + ' ' + value,
                   result: bool,
                 };
                 ruleSet.ruleExpressions.push(ruleExpression);
-                orOperator.push(bool);
+                multiplePredicates.push(bool);
               }
             });
           }
         });
         // if we have array of values then traspile it to independent expressions
         // for example 'f | t | f'
-        operator = orOperator.join(' | ');
+        predicate = multiplePredicates.join(' ' + operator + ' ');
 
         // add parenthesis as the ruleString
         if (parenthesis === '(') {
@@ -205,7 +216,7 @@ export class AppComponent {
           ruleString += ' ) ';
         }
         // replace the expression with the equal/result boolean T|F
-        ruleString = ruleString.replace(rule, operator);
+        ruleString = ruleString.replace(rule, predicate);
       });
       ruleBooleanFormat = ruleString;
       // set the boolean format fo rule to ruleSet
