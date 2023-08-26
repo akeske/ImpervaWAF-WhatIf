@@ -25,12 +25,6 @@ ClientIP != 62.169.201.60;109.242.233.139
     block from out
     true & true = true
 
-ClientIP != 62.169.201.60 | ClientIP != 109.242.233.139
-    block from 109.242.233.139
-    true | false = true
-    block from out
-    true | true = true
-
 ClientIP != 62.169.201.60 & ClientIP != 109.242.233.139
     allow from 109.242.233.139
     true & false = false
@@ -50,10 +44,4 @@ ClientIP == 62.169.201.60 | ClientIP == 109.242.233.139
     false | true = true
     allow from out
     false | false = false
-
-ClientIP == 62.169.201.60 & ClientIP == 109.242.233.139
-    allow from these ips
-    false & true = false
-    allow from out
-    false & false = false
 ```
